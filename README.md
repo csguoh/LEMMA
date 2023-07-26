@@ -6,8 +6,7 @@ Authors: *Hang Guo, Tao Dai, Guanghao Meng, and Shu-Tao Xia*
 
 This work proposes the Location Enhanced Multi-ModAl network (LEMMA) to address the challenges posed by complex backgrounds in scene text images with explicit positional enhancement. The architecture of LEMMA is as follows.
 
-![LEMMA-pipeline](https://github.com/csguoh/LEMMA/assets/LEMMA-pipeline.png)
-
+![LEMMA-pipeline](https://github.com/csguoh/LEMMA/blob/main/assets/LEMMA-pipeline.png)
 
 
 ## Pre-trained Model
@@ -66,13 +65,13 @@ python main.py --test
 
 ### Quantitative Comparison
 
-![quantitative-comparison](https://github.com/csguoh/LEMMA/assets/quantitative-comparison.png)
+![quantitative-comparison](https://github.com/csguoh/LEMMA/blob/main/assets/quantitative-comparison.png)
 
 
 
 ### Qualitative Comparison
 
-![qualitative-comparison](https://github.com/csguoh/LEMMA/assets/qualitative-comparison.png)
+![qualitative-comparison](https://github.com/csguoh/LEMMA/blob/main/assets/qualitative-comparison.png)
 
 
 
