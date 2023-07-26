@@ -1,0 +1,145 @@
+MODEL:
+
+
+TRAIN:
+  pretrained_trans: '/data/guohang/pretrained/pretrain_transformer.pth'
+  train_data_dir: [
+    '/data/guohang/dataset/TextZoom/train1',
+    '/data/guohang/dataset/TextZoom/train2',
+  ]
+  batch_size: 64
+  width: 128
+  height: 32
+  epochs: 500
+  cuda: True
+  ngpu: 2
+  workers: 0
+  resume: '/data/guohang/LEMMA/ckpt/demo/LEMMA-release.pth'
+  ckpt_dir: './ckpt/with_test'
+  voc_type: 'all' #'digits lower upper all'
+  saveInterval: 200
+  displayInterval: 50 #display loss
+  adadelta: False
+  lr: 0.001
+  adam: True
+  optimizer: "Adam"
+  beta1: 0.5
+  manualSeed: 1234
+  max_len: 100
+  keep_ratio: False
+  down_sample_scale: 2
+
+  VAL:
+    val_data_dir: [
+#        '/data/guohang/dataset/IC15',
+#        '/data/guohang/dataset/CUTE80',
+#        '/data/guohang/dataset/SVTP',
+#        '/data/guohang/dataset/SVT',
+      '/data/guohang/dataset/TextZoom/test/easy',
+      '/data/guohang/dataset/TextZoom/test/medium',
+      '/data/guohang/dataset/TextZoom/test/hard',
+    ]
+    n_vis: 10
+    vis_dir: 'demo'
+    valInterval: 400
+    rec_pretrained: '/data/guohang/pretrained/aster.pth.tar'
+    moran_pretrained: '/data/guohang/pretrained/moran.pth'
+    crnn_pretrained: '/data/guohang/pretrained/crnn.pth'
+
+TEST:
+  checkpoint: ''
+  test_data_dir: [
+  ]
+
+CONVERT:
+  image_dir:
+  lmdb_dir:
+  n_convert: 10
+
+
+PositionAware:
+  dataset_max_length: 25
+  dataset_charset_path: './dataset/charset_36.txt'
+  model_vision_attention_mode: 'nearest'
+  vision: {
+    checkpoint: '/data/guohang/pretrained/ABINet-pretrained/pretrain-vision-model/best-pretrain-vision-model.pth',
+    loss_weight: 1.,
+    attention: 'position',
+    backbone: 'transformer',
+    backbone_ln: 3,
+    d_model: 512
+  }
+  language: {
+    checkpoint: '/data/guohang/pretrained/ABINet-pretrained/pretrain-language-model/pretrain-language-model.pth',
+    num_layers: 4,
+    loss_weight: 1.,
+    detach: True,
+    use_self_attn: False
+  }
+
+
+ABINet:
+  dataset_max_length: 25
+  dataset_charset_path: './dataset/charset_36.txt'
+  model_vision_attention_mode: 'nearest'
+  full_ckpt: '/data/guohang/pretrained/ABINet-pretrained/train-abinet/best-train-abinet.pth'
+  vision: {
+    checkpoint: '/data/guohang/pretrained/ABINet-pretrained/pretrain-vision-model/best-pretrain-vision-model.pth',
+    loss_weight: 1.,
+    attention: 'position',
+    backbone: 'transformer',
+    backbone_ln: 3,
+    d_model: 512
+  }
+  language: {
+    checkpoint: '/data/guohang/pretrained/ABINet-pretrained/pretrain-language-model/pretrain-language-model.pth',
+    num_layers: 4,
+    loss_weight: 1.,
+    detach: True,
+    use_self_attn: False
+  }
+
+
+
+MATRN:
+  dataset_charset_path: './dataset/charset_36.txt'
+  dataset_max_length: 25
+  model_vision_attention_mode: 'nearest'
+  full_ckpt: '/data/guohang/pretrained/ABINet-pretrained/best-train-matrn.pth'
+  vision: {
+    checkpoint: ,
+    attention: 'position',
+    backbone: 'transformer',
+    backbone_ln: 3,
+    d_model: 512
+  }
+  language: {
+    checkpoint: ,
+    num_layers: 4,
+    detach: True,
+    use_self_attn: False
+  }
+
+PARSeq:
+  full_ckpt: '/data/guohang/pretrained/PARSeq.pth'
+  img_size: [32,128]
+  patch_size: [4,8]
+  embed_dim: 384
+  enc_depth: 12
+  enc_num_heads: 6
+  enc_mlp_ratio: 4
+
+  self.max_label_length: 25
+  self.decode_ar: True
+  self.refine_iters: 1
+
+  dec_num_heads: 12
+  dec_mlp_ratio: 4
+  dropout: 0.1
+  dec_depth: 1
+  perm_num: 6
+  perm_mirrored: True
+  max_label_length: 25
+
+
+
