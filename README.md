@@ -37,7 +37,7 @@ Following previous STISR works, we also use [CRNN](https://github.com/meijieru/c
 
 Moreover, the code  also supports some new text recognizers, such as [ABINet](https://github.com/FangShancheng/ABINet), [MATRN](https://github.com/byeonghu-na/MATRN) and [PARSeq](https://github.com/baudm/parseq).  You can find the detailed comparison using these three new text recognizers in the supplementary material we provided and can also test LEMMA with these recognizers by modifying the command (e.g., `--test_model='ABINet'`). Please download these pre-trained text recognition models from the corresponding repositories we have provided above.
 
-You also need to modify the text recognizer model path in the  `./config.yaml` file. Moreover, we employ the text focus loss proposed by STT during model training, since this text focus loss uses a pre-trained transformer based text recognizer,  please download this recognition model [here](https://github.com/FudanVI/FudanOCR/tree/main/scene-text-telescope) and also accustom the ckpt path.
+You also need to modify the text recognizer model path in the  `./config.yaml` file. Moreover, we employ the text focus loss proposed by STT during model training, since this text focus loss uses a pre-trained transformer based text recognizer,  please download this recognition model [here](https://drive.google.com/file/d/1HRpzveBbnJPQn3-k_y2Y1YY4PcraWOFP/view?usp=drive_link) and also accustom the ckpt path.
 
 
 
