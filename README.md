@@ -1,4 +1,5 @@
 # LEMMA
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/pdf/2307.09749.pdf)
 
 An official Pytorch implement of the paper "Towards Robust Scene Text Image Super-resolution via Explicit Location Enhancement" (IJCAI2023).
 
