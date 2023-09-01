@@ -81,11 +81,18 @@ python main.py --test
 If you find our work helpful, please consider citing us.
 
 ```
-@article{guo2023towards,
-  title={Towards Robust Scene Text Image Super-resolution via Explicit Location Enhancement},
-  author={Guo, Hang and Dai, Tao and Meng, Guanghao and Xia, Shu-Tao},
-  journal={arXiv preprint arXiv:2307.09749},
-  year={2023}
+@inproceedings{ijcai2023p87,
+  title     = {Towards Robust Scene Text Image Super-resolution via Explicit Location Enhancement},
+  author    = {Guo, Hang and Dai, Tao and Meng, Guanghao and Xia, Shu-Tao},
+  booktitle = {Proceedings of the Thirty-Second International Joint Conference on
+               Artificial Intelligence, {IJCAI-23}},
+  publisher = {International Joint Conferences on Artificial Intelligence Organization},
+  pages     = {782--790},
+  year      = {2023},
+  month     = {8},
+  note      = {Main Track},
+  doi       = {10.24963/ijcai.2023/87},
+  url       = {https://doi.org/10.24963/ijcai.2023/87},
 }
 ```
 
