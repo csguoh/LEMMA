@@ -20,6 +20,9 @@ from torch import optim as optim
 import lpips
 import setup
 from model.parseq.parseq_tokenizer import get_parseq_tokenize
+from PIL import Image
+import torchvision.transforms as transforms
+
 parseq_tokenizer = get_parseq_tokenize()
 abi_charset = setup.CharsetMapper()
 label2tensor = Lable2Tensor()
@@ -410,6 +413,7 @@ class TextSR(base.TextBase):
             if self.args.test_model == "CRNN":#之前是只对SR的识别结果进行的处理，这里将HR和LR同样进行处理
                 predict_result_lr = aster[0]["string_process"](aster_output_lr)
                 predict_result_hr = aster[0]["string_process"](aster_output_hr)
+                # print(predict_result_hr)
             elif self.args.test_model == "ASTER":
                 predict_result_lr, _ = aster[0]["string_process"](
                     aster_output_lr['output']['pred_rec'],
@@ -589,3 +593,165 @@ class TextSR(base.TextBase):
                                                               +total_acc['medium']*1411
                                                               +total_acc['hard']*1343)/(1343+1411+1619)))
         logging.info('Test with recognizer {} finished!'.format(self.args.test_model))
+
+    def inference(self, image_path, recognizer_name=None):
+        """
+        Run inference on a single image file.
+
+        Args:
+            image_path (str): Path to the input PNG or JPG image.
+            recognizer_name (str, optional): Name of the text recognizer to use
+                (e.g., "CRNN", "ASTER", "ABINet"). If None, uses self.args.test_model.
+
+        Returns:
+            tuple: (predicted_text, sr_image_pil)
+                - predicted_text (str): The recognized text string.
+                - sr_image_pil (PIL.Image): The super-resolved image.
+        """
+        # 1. Set default recognizer if not provided
+        if recognizer_name is None:
+            recognizer_name = self.args.test_model
+        logging.info(f'Running inference on {image_path} using recognizer {recognizer_name}')
+
+        # 2. Load Super-Resolution (SR) model
+        model_dict = self.generator_init()
+        sr_model = model_dict['model']
+        sr_model.eval()
+        model_list = [sr_model] # Consistent with eval/test
+
+        # 3. Load Text Recognizer model
+        test_bible = {}
+        aster_info = None
+        if recognizer_name == "CRNN":
+            crnn, aster_info = self.CRNN_init()
+            crnn.eval()
+            test_bible["CRNN"] = {
+                'model': crnn,
+                'data_in_fn': self.parse_crnn_data,
+                'string_process': get_string_crnn
+            }
+        elif recognizer_name == "ASTER":
+            aster_real, aster_real_info = self.Aster_init()
+            aster_info = aster_real_info
+            aster_real.eval()
+            test_bible["ASTER"] = {
+                'model': aster_real,
+                'data_in_fn': self.parse_aster_data,
+                'string_process': get_string_aster
+            }
+        elif recognizer_name == "MORAN":
+            moran = self.MORAN_init()
+            if isinstance(moran, torch.nn.DataParallel):
+                moran.device_ids = [0]
+            moran.eval()
+            test_bible["MORAN"] = {
+                'model': moran,
+                'data_in_fn': self.parse_moran_data,
+                'string_process': get_string_crnn
+            }
+        elif recognizer_name == 'ABINet':
+            abinet = self.ABINet_init()
+            abinet.eval()
+            test_bible["ABINet"] = {
+                'model': abinet,
+                'data_in_fn': self.parse_abinet_data,
+                'string_process': get_string_abinet
+            }
+        elif recognizer_name == 'MATRN':
+            matrn = self.MATRN_init()
+            matrn.eval()
+            test_bible["MATRN"] = {
+                'model': matrn,
+                'data_in_fn': self.parse_abinet_data,
+                'string_process': get_string_abinet
+            }
+        elif recognizer_name == 'PARSeq':
+            parseq = self.PARSeq_init()
+            parseq.eval()
+            test_bible["PARSeq"] = {
+                'model': parseq,
+                'data_in_fn': self.parse_parseq_data,
+                'string_process': get_string_parseq
+            }
+        else:
+            raise ValueError(f"Unknown text recognizer: {recognizer_name}")
+
+        recognizer_bundle = test_bible[recognizer_name]
+        recognizer_model = recognizer_bundle['model']
+        data_in_fn = recognizer_bundle['data_in_fn']
+        string_process_fn = recognizer_bundle['string_process']
+
+        lr_h, lr_w = 16, 64
+        
+        img_pil = Image.open(image_path).convert('RGBA')
+
+        transform = transforms.Compose([
+            transforms.Resize((lr_h, lr_w), Image.BICUBIC),
+            transforms.ToTensor(),
+        ])
+        
+        images_lr = transform(img_pil).unsqueeze(0).to(self.device)
+
+        predicted_text = ""
+        sr_image_pil = None
+
+        with torch.no_grad():
+            # Run Super-Resolution
+            cascade_images, pos_prior = sr_model(images_lr)
+            images_sr = cascade_images # This is the SR image tensor
+
+            #  Run Text Recognition on the SR image
+            images_sr_for_rec = images_sr[:, :3, :, :] 
+            rec_input_dict = data_in_fn(images_sr_for_rec)
+
+            # Run the recognizer
+            if recognizer_name == "MORAN":
+                aster_output_sr = recognizer_model(
+                    rec_input_dict[0],
+                    rec_input_dict[1],
+                    rec_input_dict[2],
+                    rec_input_dict[3],
+                    test=True,
+                    debug=True
+                )
+            else:
+                aster_output_sr = recognizer_model(rec_input_dict)
+
+            # Decode the output
+            predict_result_sr_ = []
+            if recognizer_name == "CRNN":
+                predict_result_sr_ = string_process_fn(aster_output_sr)
+            
+            elif recognizer_name == "ASTER":
+               
+                predict_result_sr_, _ = string_process_fn(
+                    aster_output_sr['output']['pred_rec'],
+                    rec_input_dict['rec_targets'], 
+                    dataset=aster_info
+                )
+            
+            elif recognizer_name == "MORAN":
+                preds, preds_reverse = aster_output_sr[0]
+                _, preds = preds.max(1)
+                sim_preds = self.converter_moran.decode(preds.data, rec_input_dict[1].data)
+                predict_result_sr_ = [pred.split('$')[0] for pred in sim_preds]
+
+            elif recognizer_name in ["ABINet", 'MATRN']:
+                predict_result_sr_ = string_process_fn(aster_output_sr, abi_charset)[0]
+            
+            elif recognizer_name in ['PARSeq']:
+                predict_result_sr_ = string_process_fn(aster_output_sr, parseq_tokenizer)
+            
+            if predict_result_sr_:
+                predicted_text = predict_result_sr_[0] 
+
+          
+            sr_tensor_for_pil = images_sr.squeeze(0).cpu().detach().clamp(0, 1)
+            pil_transform = transforms.ToPILImage()
+            sr_image_pil = pil_transform(sr_tensor_for_pil)
+
+            sr_image_pil.save("./super_resolved_output.png")
+
+        logging.info(f'Inference complete. Predicted text: "{predicted_text}"')
+        
+        return predicted_text, sr_image_pil
