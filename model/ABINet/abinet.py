@@ -27,7 +27,7 @@ class Model(nn.Module):
         self.charset = CharsetMapper(config.dataset_charset_path, max_length=self.max_length)
 
     def load(self, source, device=None, strict=True):
-        state = torch.load(source, map_location=device)
+        state = torch.load(source, map_location=device, weights_only=False)
         self.load_state_dict(state['model'], strict=strict)
 
     def _get_length(self, logit, dim=-1):

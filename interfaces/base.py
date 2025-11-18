@@ -306,7 +306,7 @@ class TextBase(object):
         aster_info = AsterInfo(cfg.voc_type)
         model_path = recognizer_path if not recognizer_path is None else self.config.TRAIN.VAL.crnn_pretrained
         print('loading pretrained crnn model from %s' % model_path)
-        stat_dict = torch.load(model_path)
+        stat_dict = torch.load(model_path, weights_only=False)
         if recognizer_path is None:
             model.load_state_dict(stat_dict)
         else:

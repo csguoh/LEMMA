@@ -9,7 +9,10 @@ from setup import Logger
 def main(config, args):
     Mission = TextSR(config, args)
     if args.test:
-        Mission.test()
+        if args.image_path != None:
+            Mission.inference(args.image_path)
+        else:
+            Mission.test()
     else:
         Mission.train()
 
@@ -25,6 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_model', type=str, default='CRNN', choices=['ASTER', "CRNN", "MORAN",'ABINet','MATRN','PARSeq'])
     parser.add_argument('--learning_rate', type=float, default=0.001, help='')
     parser.add_argument('--lr_position', type=float, default=1e-4, help='fine tune for position aware module')
+    parser.add_argument('--image_path', type=str)
     args = parser.parse_args()
     config_path = os.path.join('config', args.config)
     config = yaml.load(open(config_path, 'rb'), Loader=yaml.Loader)
